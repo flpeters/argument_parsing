@@ -2,7 +2,7 @@ from pkg_resources import parse_version
 from setuptools import setup, find_packages, __version__ as setuptools_version
 assert parse_version(setuptools_version)>=parse_version('36.2')
 
-def add_minimum_python_version(min_python:str, data:dict):
+def minimum_python_version(data:dict, min_python:str):
     "Adds classifiers and python_requires information to data"
     assert '2.0' <= min_python, "A python version below '2.0' is not possible."
     if min_python not in py_v:
@@ -20,7 +20,7 @@ def add_minimum_python_version(min_python:str, data:dict):
             data['classifiers'].extend([f'Programming Language :: Python :: {v}' for v in py_v[py_v.index(min_python):]])
 
 
-def add_development_status(status:int, data:dict):
+def development_status(data:dict, status:int):
     "Adds the development status classifier. Options are from 1 through 7."
     try:
         data['classifiers'].append(f'Development Status :: {dev_status[status-1]}')
@@ -34,6 +34,10 @@ dev_status = ['1 - Planning', '2 - Pre-Alpha', '3 - Alpha', '4 - Beta',
               '5 - Production/Stable', '6 - Mature', '7 - Inactive' ]
 
 metadata = dict(name             = 'argument_parsing',
+                version          = '0.0.1',
+                description      = 'A zero dependency argument parser written in python.',
+                author           = 'Florian Peters',
+                packages         = find_packages(where='.'),
                 entry_points     = dict(console_scripts = list()),
                 install_requires = list(), # ['pip', 'packaging']
                 extras_require   = dict(),
@@ -42,11 +46,6 @@ metadata = dict(name             = 'argument_parsing',
 
 metadata['license'] = 'GNU General Public License v2 (GPLv2)'
 metadata['classifiers'].append('License :: OSI Approved :: GNU General Public License v2 (GPLv2)')
-
-
-add_minimum_python_version('3.8', metadata)
-add_development_status(3, metadata)
-metadata['classifiers'].append('Intended Audience :: Developers')
 
 git_url = 'https://github.com/flpeters/argument_parsing'
 metadata['url']                         = git_url # homepage
@@ -59,12 +58,11 @@ metadata['project_urls']['Documentation'] = doc_url
 bug_tracker_url = 'https://github.com/flpeters/argument_parsing/issues'
 metadata['project_urls']['Bug Tracker'] = bug_tracker_url
 
-metadata.update(author='Florian Peters',
-                version='0.0.1',
-                description='A zero dependency argument parser written in python.')
+minimum_python_version(metadata, '3.8')
+development_status(metadata, 3)
+metadata['classifiers'].append('Intended Audience :: Developers')
 
-metadata.update(packages             = find_packages(where='.'),
-                include_package_data = True,
+metadata.update(include_package_data = True,
                 zip_safe             = False)
 
 try:

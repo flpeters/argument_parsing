@@ -1,4 +1,4 @@
-__all__ = ['parse_arguments', 'set_report_options', 'show_report_options']
+__all__ = ['parse_arguments', 'set_report_options']
 
 
 #######################################
@@ -13,22 +13,30 @@ RAISE_WARNING :bool = False
 SILENT        :bool = False
 
 
-def show_report_options():
-    return {'report_error'  : REPORT_ERROR,
-            'report_warning': REPORT_WARNING,
-            'raise_error'   : RAISE_ERROR ,
-            'raise_warning' : RAISE_WARNING,
-            'silent'        : SILENT}
-
-
 def set_report_options(report_error:bool=True, report_warning:bool=True,
                        raise_error:bool=False, raise_warning:bool=False,
                        silent:bool=False):
-    """Set options for how the Argument Parsing Module will behave when encountering errors or warnings.
-    Raise causes an exception to be raised, and it supersedes report.
-    Report prints the information and then continues. If raise is swarningset, then this setting is ignored.
-    Silent overwrites all other settings and causes all errors and  to be ignored.
-    The priority is thus: silent > raise > report
+    """
+    Decide how the Argument Parsing module should report errors and warnings encountered during parsing.
+    Independent of these settings, `parse_arguments` will always return True of False based on successful parsing.
+
+    Options
+    -------
+    report_error, report_warning: bool
+        Print the error or warning and then continue if possible.
+
+    raise_error, raise_warning: bool
+        Raise an exception with the error or warning message, thus terminating parsing.
+        Supersedes report_error / report_warning.
+
+    silent: bool
+        Ignore all warnings and errors and continue parsing if possible.
+        Supersedes all other report options for errors and warnings alike.
+
+    Returns
+    -------
+    options: dict
+        Echoes back the current state of the available report options as a dict.
     """
     global REPORT_ERROR, REPORT_WARNING
     global RAISE_ERROR , RAISE_WARNING
@@ -36,7 +44,11 @@ def set_report_options(report_error:bool=True, report_warning:bool=True,
     REPORT_ERROR, REPORT_WARNING = report_error, report_warning
     RAISE_ERROR , RAISE_WARNING  = raise_error , raise_warning
     SILENT = (silent or not (report_error or report_warning or raise_error or raise_warning))
-
+    return {'report_error'  : REPORT_ERROR,
+            'report_warning': REPORT_WARNING,
+            'raise_error'   : RAISE_ERROR ,
+            'raise_warning' : RAISE_WARNING,
+            'silent'        : SILENT}
 
 def report_error(err:Exception):
     if   SILENT: pass
