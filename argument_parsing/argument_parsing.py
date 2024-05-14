@@ -15,7 +15,7 @@ SILENT        :bool = False
 
 def set_report_options(report_error:bool=True, report_warning:bool=True,
                        raise_error:bool=False, raise_warning:bool=False,
-                       silent:bool=False):
+                       silent:bool=False) -> None:
     """
     Decide how the Argument Parsing module should report errors and warnings encountered during parsing.
     Independent of these settings, `parse_arguments` will always return True of False based on successful parsing.
@@ -49,6 +49,9 @@ def set_report_options(report_error:bool=True, report_warning:bool=True,
             'raise_error'   : RAISE_ERROR ,
             'raise_warning' : RAISE_WARNING,
             'silent'        : SILENT}
+
+# TODO: Maybe allow a user to overwrite report_error and report_warning
+#       in order to implement custom behaviour.
 
 def report_error(err:Exception):
     if   SILENT: pass
@@ -174,8 +177,9 @@ def handle_one_argument(result:dict, state:dict, arg_type:type, arg_default:obje
         if int_success:
             result[arg_name] = value
             if remainder:
-                report_warning("Junk on the end of the value for int argument "\
-                              f"{state['cursor']-1} ('{arg_name}'): {remainder}")
+                report_warning(f"The int argument ('{arg_name}') at position {state['cursor']-1} "\
+                              f"has a non zero remained of {remainder}. Maybe change the datatype to float? "\
+                              f"(The value was {value+remainder})")
         else:
             report_error(ValueError(f"Value of argument {state['cursor']-1} ('{arg_name}') "\
                                     f"was not an int. (It was '{value}')"))
