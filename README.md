@@ -1,9 +1,15 @@
+[![PyPI Version](https://img.shields.io/pypi/v/argument-parsing?label=PyPI%20Version)](https://pypi.org/project/argument-parsing/)  
+
 # Introduction
 A zero dependency, single file string argument parser written in python.  
 You can define commands by creating simple python dictionaries, parse strings for the defined fields, and receive a structured result. The argument parser handles some basic python types, typecasting, missing values, default values, nested lists and tuples, error reporting, and any combination of the above.
 
 # Installation
-Currently the easiest way to use this module is to do a local pip install.
+This package is available in PyPI:
+```console
+pip install argument-parsing
+```
+Another way to use this module is to do a local pip install.
 ```console
 git clone git@github.com:flpeters/argument_parsing.git
 cd argument_parsing
