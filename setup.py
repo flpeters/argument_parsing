@@ -1,12 +1,13 @@
-from pkg_resources import parse_version
 from setuptools import setup, find_packages, __version__ as setuptools_version
-assert parse_version(setuptools_version)>=parse_version('36.2')
+
+py_v       = '2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 3.10 3.11 3.12 3.13'.split()
+dev_status = ['1 - Planning', '2 - Pre-Alpha', '3 - Alpha', '4 - Beta', '5 - Production/Stable', '6 - Mature', '7 - Inactive' ]
 
 def minimum_python_version(data:dict, min_python:str):
     "Adds classifiers and python_requires information to data"
     assert '2.0' <= min_python, "A python version below '2.0' is not possible."
     if min_python not in py_v:
-        print(f"[WARNING]: Minimum Python version '{min_python}' in '{file_found}' is not recognized.\n"\
+        print(f"[WARNING]: Minimum Python version '{min_python}' is not recognized.\n"\
               f"           Recognized versions are: {py_v}")
     else:
         data['python_requires'] = f'>={min_python}'
@@ -25,16 +26,12 @@ def development_status(data:dict, status:int):
     try:
         data['classifiers'].append(f'Development Status :: {dev_status[status-1]}')
     except (ValueError, IndexError):
-        raise ValueError(f"Status '{status}' is an invalid value in '{file_found}'. \n"\
+        raise ValueError(f"Status '{status}' is an invalid value. \n"\
                          "It can only take on one of the following: {'1', '2', '3', '4', '5', '6', '7'}") from None
 
 
-py_v = '2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 3.10 3.11 3.12 3.13'.split()
-dev_status = ['1 - Planning', '2 - Pre-Alpha', '3 - Alpha', '4 - Beta',
-              '5 - Production/Stable', '6 - Mature', '7 - Inactive' ]
-
 metadata = dict(name             = 'argument_parsing',
-                version          = '0.0.1',
+                version          = '1.0.0',
                 description      = 'A zero dependency argument parser written in python.',
                 author           = 'Florian Peters',
                 packages         = find_packages(where='.'),
