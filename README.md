@@ -1,18 +1,27 @@
-# Attribution
-This argument parser is largely inspired by and based upon, but in no way affiliated with, these two videos by [Jonathan Blow](https://www.youtube.com/@jblow888).
-> [Jonathan Blow - Livestream: Metaprogramming Use Case: Command-Line Argument Parsing - Part 1](https://youtu.be/TwqXTf7VfZk)  
-> [Jonathan Blow - Livestream: Metaprogramming Use Case: Command-Line Argument Parsing - Part 2](https://youtu.be/pgiVrhsGkKY)
-
-
 # Introduction
-This project is a zero dependency argument parser written in python.
+A zero dependency, single file string argument parser written in python.  
+You can define commands by creating simple python dictionaries, parse strings for the defined fields, and receive a structured result. The argument parser handles some basic python types, typecasting, missing values, default values, nested lists and tuples, error reporting, and any combination of the above.
 
+# Installation
+Currently the easiest way to use this module is to do a local pip install.
+```console
+git clone git@github.com:flpeters/argument_parsing.git
+cd argument_parsing
+pip install -e .
+```
 
 # Documentation
 
-A single function is provided, which takes in the definition of a __"command"__, as well as the __"arguments"__ you want to parse.
+This entire module provides exactly two functions.  
+A single function is provided for processing your definition of a __"command"__ as well as the string __"arguments"__ you want to parse, into structured data. 
 ```python
-def parse_arguments(command:dict, arguments:str) -> (bool, dict, dict)
+def parse_arguments(command:dict, arguments:str) -> (bool, dict, dict):
+```  
+A second function is provided for changing the settings of how errors and warnings are reported.
+```python
+def set_report_options(report_error:bool=True, report_warning:bool=True,
+                       raise_error:bool=False, raise_warning:bool=False,
+                       silent:bool=False) -> None:
 ```  
 
 #### The __command__
@@ -38,9 +47,9 @@ Example `arguments`:
 
 #### The __return__ value
 is a three-tuple of __"success"__, __"result"__, and __"is_set"__.
-- `success` is a single `bool`, which tells you whether or not parsing was successful. If this is `False`, the other two arguments are not guaranteed to be valid. There will be a error message with details on why parsing failed.  
-- `result` is a `dict` with exactly the same keys as the input `command`, and the values set to what was parsed from the `arguments` string. In cases where `success` is `False`, this might only be partially filled out, so `success` should always be checked.
-- `is_set` is a `dict`, which also contains exactly the same keys as `command`. This time the values are all either `True` or `False` depending on if the keyword was present in the `arguments` string. In cases where a default value is given in `command`, only if the default was overwritten will the value be `True`. This holds even for `bool` arguments.  
+- `success` is a single `bool`, which tells you whether or not parsing was successful. If this is `False`, the other two arguments are not guaranteed to be valid. There will be an error message with details on why parsing failed.  
+- `result` is a `dict` with exactly the same keys as the input `command`. The values will be set to what was parsed from the `arguments` string. In cases where `success` is `False`, this might only be partially filled out, so `success` should always be checked.
+- `is_set` is a `dict`, which also contains exactly the same keys as `command`. The values are all either `True` or `False` depending on if the keyword was present in the `arguments` string. In cases where a default value is given in `command`, only if the default was overwritten will the value be `True`. This holds even for `bool` arguments.  
 
 `return` values given the example inputs above:
 ```python
@@ -60,24 +69,30 @@ is_set  = {'name': True,
 ```
 
 ## Supported datatypes
-A __primitive type__ is a simple python datatype. Depending on which type is used when defining the keywords of a `command`, how the values are parsed will change.  
+A __primitive type__ is a simple python datatype. Depending on which type is used when defining the keywords of a `command`, the parsing rules will change.  
+
+---
+
 The following __primitive types__ are supported:  
 #### string
 A keyword of type `str` always requires exactly one value.
 ```python
 command   = {'weather': str}
 arguments = '-weather sunny'
+success, result, is_set = parse_arguments(command, arguments)
 result    = {'weather': 'sunny'}
 is_set    = {'weather': True}
 ```
 As long as this value doesn't contain any whitespace, the characters it is made up of don't matter. Any punctuation or numbers will just be treated as part of the string.
 ```python
 arguments = '-weather 1234'
+...
 result    = {'weather': '1234'}
 is_set    = {'weather': True}
 ```
 ```python
 arguments = '-weather -cloudy'
+...
 result    = {'weather': '-cloudy'}
 is_set    = {'weather': True}
 ```
@@ -85,6 +100,7 @@ When a default value is set, the keyword becomes optional. Should the keyword no
 ```python
 command   = {'weather': 'cloudy'}
 arguments = ''
+...
 result    = {'weather': 'cloudy'}
 is_set    = {'weather': False}
 ```
@@ -96,18 +112,21 @@ A keyword of type `bool` requires no value. If the keyword appears in the `argum
 ```python
 command   = {'rainy': bool}
 arguments = '-rainy'
+...
 result    = {'rainy': True}
 is_set    = {'rainy': True}
 ```
 ```python
 command   = {'rainy': bool}
 arguments = ''
+...
 result    = {'rainy': False}
 is_set    = {'rainy': False}
 ```
 ```python
 command   = {'rainy': True}
 arguments = ''
+...
 result    = {'rainy': True}
 is_set    = {'rainy': False}
 ```
@@ -117,6 +136,7 @@ A keyword of type `int` always requires exactly one value.
 ```python
 command   = {'meters': int}
 arguments = '-meters 26'
+...
 result    = {'meters': 26}
 is_set    = {'meters': True}
 ```
@@ -124,21 +144,25 @@ The value which comes after the keyword will first be cast to `float`, and then 
 This also means that a sign in front of the number will be respected.
 ```python
 arguments = '-meters -15'
+...
 result    = {'meters': -15}
 ```
 ```python
 arguments = '-meters +15.0'
+...
 result    = {'meters': 15.0}
 ```
 ```python
 arguments = '-meters 15.4'
+...
 result    = {'meters': 15}
->>> This will warn that the remained given in the argument has been cut off.
+# This will result in a warning that the remainder of 0.4 has been cut off.
 ```
 The default value behaviour is the same as for strings.
 ```python
 command   = {'meters': 33}
 arguments = ''
+...
 result    = {'meters': 33}
 is_set    = {'meters': False}
 ```
@@ -149,24 +173,28 @@ The value which comes after the keyword will simply be cast to a python `float`.
 ```python
 command   = {'celsius': float}
 arguments = '-celsius 23.6'
+...
 result    = {'celsius': 23.6}
 is_set    = {'celsius': True}
 ```
 ```python
 command   = {'celsius': float}
 arguments = '-celsius -10.0'
+...
 result    = {'celsius': -10.0}
 ```
 ```python
 command   = {'celsius': float}
 arguments = '-celsius inf'
+...
 result    = {'celsius': inf}
 ```
 The default value behaviour is the same as for strings.
 ```python
 command   = {'celsius': float('nan')}
 arguments = ''
-result    = {'celsius': inf}
+...
+result    = {'celsius': nan}
 is_set    = {'celsius': False}
 ```
 
@@ -197,3 +225,8 @@ The only exception to that is the `bool` type. Since the value can't be decided 
     'arg5': [str, int, bool, True, [1, '2', 3, bool], (2.1, float)]
 }
 ```
+
+# Attribution
+This argument parser is largely inspired by and based upon, but in no way affiliated with, the work by [Jonathan Blow](https://www.youtube.com/@jblow888) as seen in these two videos on his youtube channel.
+> [Jonathan Blow - Livestream: Metaprogramming Use Case: Command-Line Argument Parsing - Part 1](https://youtu.be/TwqXTf7VfZk)  
+> [Jonathan Blow - Livestream: Metaprogramming Use Case: Command-Line Argument Parsing - Part 2](https://youtu.be/pgiVrhsGkKY)
