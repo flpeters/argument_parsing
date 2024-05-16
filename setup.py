@@ -31,7 +31,7 @@ def development_status(data:dict, status:int):
 
 
 metadata = dict(name             = 'argument_parsing',
-                version          = '1.0.0',
+                version          = '1.0.1',
                 description      = 'A zero dependency argument parser written in python.',
                 author           = 'Florian Peters',
                 packages         = find_packages(where='.'),
