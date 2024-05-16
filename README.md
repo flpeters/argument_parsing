@@ -5,11 +5,11 @@ A zero dependency, single file string argument parser written in python.
 You can define commands by creating simple python dictionaries, parse strings for the defined fields, and receive a structured result. The argument parser handles some basic python types, typecasting, missing values, default values, nested lists and tuples, error reporting, and any combination of the above.
 
 # Installation
-This package is available in PyPI:
+This package is available on [PyPI](https://pypi.org/project/argument-parsing/):
 ```console
 pip install argument-parsing
 ```
-Another way to use this module is to do a local pip install.
+Another way to install this module is to do a local pip install.
 ```console
 git clone git@github.com:flpeters/argument_parsing.git
 cd argument_parsing
@@ -102,7 +102,7 @@ arguments = '-weather -cloudy'
 result    = {'weather': '-cloudy'}
 is_set    = {'weather': True}
 ```
-When a default value is set, the keyword becomes optional. Should the keyword not be part of the `arguments`, then the default value will be placed in the `results` instead.
+When a default value is set, the keyword becomes optional. Should the keyword not be part of the `arguments`, then the default value will be placed in the results instead.
 ```python
 command   = {'weather': 'cloudy'}
 arguments = ''
@@ -156,7 +156,7 @@ result    = {'meters': -15}
 ```python
 arguments = '-meters +15.0'
 ...
-result    = {'meters': 15.0}
+result    = {'meters': 15}
 ```
 ```python
 arguments = '-meters 15.4'
@@ -206,30 +206,48 @@ is_set    = {'celsius': False}
 
 ---
 
-A __composite type__ is a `list` or `tuple` of one or more values of potentially multiple datatypes. Since `list` or `tuple` have the same semantics and can be used interchangeably, they will be referred to as 'array' for the purpose of this documentation.  
+A __composite type__ is a `list` or `tuple` containing one or more values of potentially multiple datatypes. Since `list` or `tuple` have the same semantics and can be used interchangeably, they will be referred to as 'array' for the purpose of this documentation.  
 
 The following __composite types__ are supported:  
 
 #### un-bounded array
-Specifying only the type `list` or `tuple`, will result in an 'unbounded array' of that type, meaning that all values following the keyword will be added to the array, until either the end of the `arguments` string is reached, or a value starts with a hyphen-minus (`'-'`), which denotes the start of the next argument. All values of this unbounded array will be of type `str`. This kind of argument should be used with caution because, for instance, negative values will be treated as the start of a new argument due to them starting with a hyphen-minus sign.  
+Specifying only the type `list` or `tuple`, will result in an 'unbounded array' of that type, meaning that all values following the keyword will be added to the array, until either the end of the `arguments` string is reached, or a value starts with a hyphen-minus (`'-'`), which denotes the start of the next argument. All values of this unbounded array will be of type `str`. This kind of argument should be used with caution because, for instance, negative numbers will be treated as the start of a new argument due to them starting with a hyphen-minus sign.  
 ```python
-{
+command = {
     'unbounded_list' : list,
     'unbounded_tuple': tuple,
 }
+arguments = '-unbounded_list 1 2 3 4 5 a b c -unbounded_tuple 1.0 + 1.0 = 2.0'
+...
+result = {'unbounded_list' : ['1', '2', '3', '4', '5', 'a', 'b', 'c'],
+          'unbounded_tuple': ('1.0', '+', '1.0', '=', '2.0')}
+is_set = {'unbounded_list': True, 'unbounded_tuple': True}
 ```  
 
 #### fixed array
-By specifying an array containing the types, default values, and ordering you want the values to have, you can define a fixed array. Their construction can get arbitrarily complex, mixing and matching any supported primitive type and fixed arrays you want. The only thing not allowed, is using an unbounded array inside a fixed array. All values will be cast to the corresponding type using all the same semantics as if they were single values (see above).  
-The only exception to that is the `bool` type. Since the value can't be decided based on presence of absence, a value has to be given. The value has to be either `'True'`, `'False'`, or interpretable as a `float`, which will then be cast to a `bool`. This means that e.g. `'0.0'` will result in `False`, and `'123'` will result in `'True'` (careful, check the [casting rules](https://docs.python.org/3.3/library/stdtypes.html?highlight=frozenset#truth-value-testing) first).
+By specifying an array containing the types, default values, and ordering you want the values to have, you can define a fixed array. Their construction can get arbitrarily complex, mixing and matching any supported primitive type and fixed arrays you want. The only thing not allowed, is using an unbounded array inside a fixed array. All values will be cast to the corresponding type using all the same semantics as if they were single values (see above).   
+Please note that while default values can be used to define the array, you currently need to specify all of the values, even if the array has default values at the end and they could technically be omitted. Default values in the middle of the array also currently don't have a mechanism for not setting them. This also means that since the value of a `bool` type can't be decided based on presence or absence, a value has to be given. We recognize a value of either `'True'`, `'False'`, or one interpretable as a `float`, which will then be cast to a `bool`. This means that e.g. `'0.0'` will result in `False`, and `'123'` will result in `'True'` (careful, check the [casting rules](https://docs.python.org/3.3/library/stdtypes.html?highlight=frozenset#truth-value-testing) first). 
 ```python
-{
+command = {
     'arg1': [int]*5,
     'arg2': (3.14, 'pi', bool),
     'arg3': (bool, str, 123)*2,
     'arg4': [[0]*3, [1]*3, [str]*3],
     'arg5': [str, int, bool, True, [1, '2', 3, bool], (2.1, float)]
 }
+arguments = '-arg1 4 5 6 7 8 \
+             -arg2 6.28 tau True \
+             -arg3 False helloworld 123 True HelloWorld 321 \
+             -arg4 0 0 0 1 1 1 2 2 2 \
+             -arg5 1 1 1 1 1 1 1 1 1 1'
+...
+result = {
+    'arg1': [4, 5, 6, 7, 8],
+    'arg2': (6.28, 'tau', True),
+    'arg3': (False, 'helloworld', 123, True, 'HelloWorld', 321),
+    'arg4': [[0, 0, 0], [1, 1, 1], ['2', '2', '2']],
+    'arg5': ['1', 1, True, True, [1, '1', 1, True], (1.0, 1.0)]}
+is_set = {'arg1': True, 'arg2': True, 'arg3': True, 'arg4': True, 'arg5': True}
 ```
 
 # Attribution

@@ -204,13 +204,16 @@ def handle_one_argument(result:dict, state:dict, arg_type:type, arg_default:obje
                 report_error(SyntaxError(f"Using an unbounded list or tuple inside an array is not supported."))
                 return False
             array_success, state['cursor'], value = to_unbounded_array(args, state['cursor'])
-            if array_success: # NOTE: currently this can't actually fail... don't use unbounded lists kids.
+            if array_success: # NOTE: currently this can't actually fail...
                 result[arg_name] = arg_type(value)
             else: success = False
             
         else: # predefined list
             s = {'args': args, 'name': 'v', 'cursor': state['cursor'], 'inside_array': True}
             value = []
+            # TODO: we need to handle default values here as well. if the last keywords for this array all already have values,
+            #       then it's fine if they are missing.
+            #       When this is fixed, also change the documentation.
             for i, x in enumerate(arg_default):
                 t, d = typify(x)
                 n = f'{arg_name}[{i}]'
